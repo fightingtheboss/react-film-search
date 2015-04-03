@@ -1,0 +1,10 @@
+{
+  "name": "react-intro",
+  "private": true,
+  "dependencies": {
+    "jquery": "~1.11.0",
+    "normalize-css": "~3.0.2",
+    "react": "~0.13.1"
+  },
+  "devDependencies": {}
+}
