@@ -56,21 +56,29 @@ var FilmSearchApp = React.createClass({
     }
   },
 
+  componentWillMount: function() {
+    this.debouncedSearch = _.debounce(this.searchTMDB, 250);
+  },
+
+  searchTMDB: function(searchTerm) {
+    $.getJSON(TMDB.base_url + '/search/movie', {
+      query: searchTerm,
+      api_key: TMDB.api_key,
+      include_adult: "false",
+      language: "en"
+    }).done(function(data) {
+      if ( data ) {
+        this.setState({
+          films: data.results
+        });
+      }
+    }.bind(this));
+  },
+
   handleUserInput: function(searchTerm) {
     // Fetch new films from database
     if ( searchTerm.length > 2 ) {
-      $.getJSON(TMDB.base_url + '/search/movie', {
-        query: searchTerm,
-        api_key: TMDB.api_key,
-        include_adult: "false",
-        language: "en"
-      }).done(function(data) {
-        if ( data ) {
-          this.setState({
-            films: data.results
-          });
-        }
-      }.bind(this));
+      this.debouncedSearch(searchTerm);
     }
 
     this.setState({
