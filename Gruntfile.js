@@ -36,17 +36,12 @@ module.exports = function (grunt) {
             },
             js: {
                 files: ['<%= config.app %>/scripts/{,*/}*.js'],
-                tasks: ['jshint'],
                 options: {
                     livereload: true
                 }
             },
             gruntfile: {
                 files: ['Gruntfile.js']
-            },
-            sass: {
-                files: ['<%= config.app %>/styles/{,*/}*.{scss,sass}'],
-                tasks: ['sass:server', 'autoprefixer']
             },
             styles: {
                 files: ['<%= config.app %>/styles/{,*/}*.css'],
@@ -242,12 +237,11 @@ module.exports = function (grunt) {
           }
         },
 
-        // 
+        //
 
         // Run some tasks in parallel to speed up build process
         concurrent: {
             server: [
-                'sass:server',
                 'copy:styles'
             ],
             test: [
@@ -300,7 +294,7 @@ module.exports = function (grunt) {
         'concurrent:dist',
         'autoprefixer',
         'copy:dist',
-        'useminPrepare', // 
+        'useminPrepare', //
         'concat',
         'cssmin',
         'uglify',
