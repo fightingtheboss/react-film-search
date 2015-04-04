@@ -58,8 +58,6 @@ var FilmSearchApp = React.createClass({
 
   handleUserInput: function(searchTerm) {
     // Fetch new films from database
-    var self = this;
-
     if ( searchTerm.length > 2 ) {
       $.getJSON(TMDB.base_url + '/search/movie', {
         query: searchTerm,
@@ -68,14 +66,14 @@ var FilmSearchApp = React.createClass({
         language: "en"
       }).done(function(data) {
         if ( data ) {
-          self.setState({
+          this.setState({
             films: data.results
           });
         }
-      });
+      }.bind(this));
     }
 
-    self.setState({
+    this.setState({
       searchTerm: searchTerm
     });
   },
