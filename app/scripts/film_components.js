@@ -11,12 +11,27 @@ var FilmPoster = React.createClass({
   }
 });
 
+var FilmPosterLink = React.createClass({
+  handleClick: function(e) {
+    this.props.onSelect(this.props.film);
+  },
+
+  render: function() {
+    return (
+      <a className="film-poster-link" key={this.props.film.id} onClick={this.handleClick}>
+        <FilmPoster film={this.props.film} />
+      </a>
+    );
+  }
+});
+
 var FilmPosterList = React.createClass({
   render: function() {
-    var posters = [];
+    var self = this,
+        posters = [];
 
     this.props.films.forEach(function(film) {
-      posters.push(<FilmPoster film={film} key={film.id} />);
+      posters.push(<FilmPosterLink film={film} key={film.id} onSelect={self.props.onSelected} />);
     });
 
     return (
@@ -25,12 +40,35 @@ var FilmPosterList = React.createClass({
   }
 });
 
-// TODO
-// var FilmDetail = React.createClass({
-//   render: function() {
-//     return ();
-//   }
-// });
+var FilmDetail = React.createClass({
+  render: function() {
+    var film = this.props.film,
+        director = null;
+
+    if ( this.props.film ) {
+      director = _.first( (!_.isEmpty(film.casts.crew)) && _.pluck( _.filter( film.casts.crew, function(crew) { return crew.department === "Directing" && crew.job === "Director"; } ), "name" ) );
+
+      return (
+        <article className="film-detail">
+          <FilmPoster film={film} />
+          <div className="film-detail-content">
+            <h1 className="film-title">{film.title}</h1>
+            <h2 className="film-director">{director}</h2>
+            <p className="film-summary">{film.overview}</p>
+          </div>
+        </article>
+      );
+    } else {
+      return (
+        <article className="film-detail">
+          <div className="film-detail-content">
+            <h1 className="film-not-selected">No film selected.</h1>
+          </div>
+        </article>
+      );
+    }
+  }
+});
 
 var FilmSearch = React.createClass({
   handleChange: function() {
@@ -42,7 +80,7 @@ var FilmSearch = React.createClass({
   render: function() {
     return (
       <form>
-        <input type="text" placeholder="Enter a film title" ref="searchTermInput" value={this.props.searchTerm} onChange={this.handleChange} />
+        <input type="search" placeholder="Enter a film title" ref="searchTermInput" value={this.props.searchTerm} onChange={this.handleChange} />
       </form>
     );
   }
@@ -52,7 +90,9 @@ var FilmSearchApp = React.createClass({
   getInitialState: function() {
     return {
       searchTerm: '',
-      films: FILMS
+      films: FILMS,
+      recent: [],
+      current: null
     }
   },
 
@@ -86,12 +126,39 @@ var FilmSearchApp = React.createClass({
     });
   },
 
+  handleFilmSelection: function(film) {
+    var filmDetail = _.find(this.state.recent, 'id', film.id);
+
+    if ( !filmDetail ) {
+      $.getJSON(TMDB.base_url + '/movie/' + film.id, {
+        api_key: TMDB.api_key,
+        language: "en",
+        append_to_response: 'casts,images'
+      }).done(function(data) {
+        if ( data ) {
+          this.setState({
+            current: data,
+            recent: this.state.recent.concat([data])
+          });
+        }
+      }.bind(this));
+    } else {
+      this.setState({
+        current: filmDetail
+      });
+    }
+  },
+
   render: function() {
     return (
-      <div>
+      <main className="film-search-app">
         <FilmSearch searchTerm={this.state.searchTerm} onUserInput={this.handleUserInput} />
-        <FilmPosterList films={this.state.films} searchTerm={this.state.searchTerm} />
-      </div>
+        <FilmPosterList films={this.state.films} onSelected={this.handleFilmSelection} />
+        <FilmDetail film={this.state.current} />
+
+        <h2>Recent</h2>
+        <FilmPosterList films={this.state.recent} onSelected={this.handleFilmSelection} />
+      </main>
     );
   }
 });
